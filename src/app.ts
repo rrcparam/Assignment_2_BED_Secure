@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import morgan from "morgan";
 import employeeRoutes from "./api/v1/routes/employeeRoutes";
 import branchRoutes from "./api/v1/routes/branchRoutes";
+import dotenv from "dotenv";
+dotenv.config();
 
 
 const app = express();
@@ -15,10 +17,13 @@ app.use("/api/v1/branches", branchRoutes);
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).send("Server is healthy");
 });
+
 import { db } from "../config/firebaseConfig";
 
-db.listCollections().then(collections => {
-  console.log("✅ Firestore connected! Collections:", collections.map(c => c.id));
-});
+if (process.env.NODE_ENV !== "test") {
+  db.listCollections().then((collections) => {
+    console.log("Firestore connected! Collections:", collections.map((c) => c.id));
+  });
+}
 
 export default app;
