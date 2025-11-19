@@ -250,12 +250,12 @@
         "properties": {
           "name": {
             "type": "string",
-            "example": "John Doe"
+            "example": "parm Doe"
           },
           "email": {
             "type": "string",
             "format": "email",
-            "example": "john@example.com"
+            "example": "parm@example.com"
           },
           "position": {
             "type": "string",
