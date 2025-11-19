@@ -1,0 +1,23 @@
+import { CorsOptions } from "cors";
+
+/**
+ * Generate environment-based CORS configuration
+ */
+export const getCorsOptions = (): CorsOptions => {
+    const isDevelopment = process.env.NODE_ENV === "development";
+
+    if (isDevelopment) {
+        return {
+            origin: true, 
+            credentials: true,
+        };
+    }
+
+    return {
+        origin: process.env.ALLOWED_ORIGINS?.split(",") || [],
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    };
+};
+
