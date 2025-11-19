@@ -1,16 +1,70 @@
-import { initializeApp, cert, ServiceAccount } from "firebase-admin/app";
+
+
+import {
+    initializeApp,
+    cert,
+    getApps,
+    App,
+    AppOptions,
+    ServiceAccount,
+} from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
+import { getAuth, Auth } from "firebase-admin/auth";
 
-import * as serviceAccount from "../serviceAccountKey.json";
+/**
+ * Retrieves Firebase configuration from environment variables
+ *
+ * @returns {AppOptions} Firebase application configuration object
+ * @throws {Error} If any required environment variables are missing
+ */
+const getFirebaseConfig = (): AppOptions => {
+    const {
+        FIREBASE_PROJECT_ID,
+        FIREBASE_CLIENT_EMAIL,
+        FIREBASE_PRIVATE_KEY,
+    } = process.env;
 
-// Initialize the Firebase app with the service account credentials
-// This step is necessary before you can use any Firebase services
-initializeApp({
-    credential: cert(serviceAccount as ServiceAccount),
-});
+     // Validate that all required configuration values are present
+    if (
+        !FIREBASE_PROJECT_ID ||
+        !FIREBASE_CLIENT_EMAIL ||
+        !FIREBASE_PRIVATE_KEY
+    ) {
+        throw new Error(
+            "Missing Firebase configuration. Check your environment variables."
+        );
+    }
 
-// Get a reference to the Firestore service
-// This creates a Firestore instance that you can use to interact with your database
-const db: Firestore = getFirestore();
+    // Build secure service account object
+    const serviceAccount: ServiceAccount = {
+        projectId: FIREBASE_PROJECT_ID,
+        clientEmail: FIREBASE_CLIENT_EMAIL,
+        privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    };
 
-export { db };
+    return {
+        credential: cert(serviceAccount),
+    };
+};
+
+
+/**
+ * Initializes Firebase Admin SDK if not already initialized
+ *
+ * This function implements the singleton pattern to ensure only
+ * one Firebase app instance is created.
+ *
+ * @returns {App} Firebase Admin app instance
+ */
+const initializeFirebaseAdmin = (): App => {
+    const existingApp: App | undefined = getApps()[0];
+    if (existingApp) return existingApp;
+
+    return initializeApp(getFirebaseConfig());
+};
+
+const app = initializeFirebaseAdmin();
+const db: Firestore = getFirestore(app);
+const auth: Auth = getAuth(app);
+
+export { db, auth };
